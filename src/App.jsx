@@ -3,23 +3,31 @@ import confetti from "canvas-confetti"
 import {TURNS} from "./const/constants.js"
 import {checkWinnerFrom, checkEndGame} from "./logic/board.js"
 import Board from "./components/Board.jsx";
+import {resetGameStorage, saveGameToStorage} from "./logic/storage/index.js";
 
 const App = () => {
-    const [board, setBoard] = useState(
-        Array(9).fill(null)
+    const [board, setBoard] = useState(() => {
+        const boardFromLocalStorage = window.localStorage.getItem('board');
+        return boardFromLocalStorage ? JSON.parse(boardFromLocalStorage) : Array(9).fill(null)
+    });
+    const [turn, setTurn] = useState(() => {
+            const TurnFromLocalStorage = window.localStorage.getItem('turn');
+            return TurnFromLocalStorage ?? TURNS.X
+        }
     );
-    const [turn, setTurn] = useState(TURNS.X);
     const [winner, setWinner] = useState(null);
 
     const updateBoard = (index) => {
-        // Verificamos si ya hay algo dentor del index
         if (board[index] || winner) return
-        // Actualizamos el tablero
         const newBoard = [...board]
         newBoard[index] = turn
         setBoard(newBoard)
         const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
         setTurn(newTurn)
+        saveGameToStorage({
+            board: newBoard,
+            turn: newTurn
+        })
         const newWinner = checkWinnerFrom(newBoard)
         if (newWinner) {
             setWinner(newWinner)
@@ -33,9 +41,10 @@ const App = () => {
         setBoard(Array(9).fill(null))
         setTurn(TURNS.X)
         setWinner(null)
+        resetGameStorage()
     }
     return (
-        <Board winner={winner} updateBoard={updateBoard} turn={turn} board={board} resetGame={resetGame} />
+        <Board winner={winner} updateBoard={updateBoard} turn={turn} board={board} resetGame={resetGame}/>
     )
 }
 
