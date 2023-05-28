@@ -2,6 +2,7 @@ import {Square} from "./Square.jsx";
 import {TURNS} from "../const/constants.js";
 import {WinnerModal} from "./WinnerModal.jsx";
 
+// eslint-disable-next-line react/prop-types
 const Board = ({board,turn, resetGame,updateBoard,winner}) => {
     return (
         <main className="board">
@@ -9,6 +10,7 @@ const Board = ({board,turn, resetGame,updateBoard,winner}) => {
             <button onClick={resetGame}>Reset del Juego</button>
             <section className="game">
                 {
+                    // eslint-disable-next-line react/prop-types
                     board.map((_, index) => {
                         return (
                             <Square key={index} index={index} updateBoard={updateBoard}>
