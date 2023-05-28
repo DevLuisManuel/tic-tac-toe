@@ -1,35 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {useState} from "react";
+import confetti from "canvas-confetti"
+import {TURNS} from "./const/constants.js"
+import {checkWinnerFrom, checkEndGame} from "./logic/board.js"
+import Board from "./components/Board.jsx";
+import {resetGameStorage, saveGameToStorage} from "./logic/storage/index.js";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+    const [board, setBoard] = useState(() => {
+        const boardFromLocalStorage = window.localStorage.getItem('board');
+        return boardFromLocalStorage ? JSON.parse(boardFromLocalStorage) : Array(9).fill(null)
+    });
+    const [turn, setTurn] = useState(() => {
+            const TurnFromLocalStorage = window.localStorage.getItem('turn');
+            return TurnFromLocalStorage ?? TURNS.X
+        }
+    );
+    const [winner, setWinner] = useState(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const updateBoard = (index) => {
+        if (board[index] || winner) return
+        const newBoard = [...board]
+        newBoard[index] = turn
+        setBoard(newBoard)
+        const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
+        setTurn(newTurn)
+        saveGameToStorage({
+            board: newBoard,
+            turn: newTurn
+        })
+        const newWinner = checkWinnerFrom(newBoard)
+        if (newWinner) {
+            setWinner(newWinner)
+            confetti()
+        } else if (checkEndGame(newBoard)) {
+            setWinner(false)
+        }
+    }
+
+    const resetGame = () => {
+        setBoard(Array(9).fill(null))
+        setTurn(TURNS.X)
+        setWinner(null)
+        resetGameStorage()
+    }
+    return (
+        <Board winner={winner} updateBoard={updateBoard} turn={turn} board={board} resetGame={resetGame}/>
+    )
 }
 
 export default App
